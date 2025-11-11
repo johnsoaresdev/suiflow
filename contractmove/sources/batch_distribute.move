@@ -35,3 +35,4 @@ module 0x0::batch_distribute {
         public_transfer(main_coin, sender(ctx));
     }
 }
+

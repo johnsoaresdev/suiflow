@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SUI Batch Distributor • Import Spreadsheet</title>
+  <title>SUI Distributor • CSV Batch</title>
   <style>
     :root{
       --bg: #0b0f16;
@@ -28,172 +28,375 @@
         radial-gradient(1200px 800px at 80% -20%, rgba(62,116,255,.18), transparent 55%),
         radial-gradient(1200px 800px at -10% 120%, rgba(64,224,208,.10), transparent 55%),
         var(--bg);
-      background-repeat: no-repeat;
-      background-size: cover;
-      background-attachment: fixed;
+      background-repeat: no-repeat; background-size: cover; background-attachment: fixed;
       color: var(--text);
     }
-    header{
-      padding: 24px clamp(16px, 4vw, 40px);
-      display:flex; align-items:center; justify-content:space-between;
-      gap: 16px;
-    }
-    .brand{ display:flex; align-items:center; gap:12px; }
-    .logo{ width:40px; height:40px; background: linear-gradient(135deg, var(--primary), #40e0d0); border-radius: 12px; box-shadow: var(--shadow); }
-    .title{ font-weight:700; letter-spacing:.3px; }
-    .subtitle{ color: var(--muted); font-size:.95rem; }
+    header{padding:24px clamp(16px,4vw,40px);display:flex;justify-content:space-between;align-items:center;gap:16px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:40px;height:40px;background:linear-gradient(135deg,var(--primary),#40e0d0);border-radius:12px;box-shadow:var(--shadow)}
+    .title{font-weight:700}
+    .subtitle{color:var(--muted)}
 
-    .container{
-      max-width: 1100px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 40px) 40px;
-      display:grid; grid-template-columns: 1.2fr .8fr; gap: 24px;
-    }
-    @media (max-width: 980px){ .container{ grid-template-columns: 1fr; } }
+    .container{max-width:1100px;margin:0 auto;padding:0 clamp(16px,4vw,40px) 40px;display:grid;grid-template-columns:1.2fr .8fr;gap:24px}
+    @media (max-width:980px){.container{grid-template-columns:1fr}}
 
-    .panel{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.05)), var(--panel); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow); }
-    .panel h2{ margin:0 0 8px 0; padding:0; font-size:1.1rem; }
-    .panel .head{ padding:18px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; }
-    .panel .body{ padding: 18px; }
+    .panel{background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,0.05)),var(--panel);border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow)}
+    .panel .head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .panel .body{padding:18px}
+    .panel h2{margin:0;font-size:1.1rem}
 
-    .dropzone { display:block; width:100%; border:2px dashed var(--border); border-radius:var(--radius-xl); padding:32px; text-align:center; background:none; transition:.2s ease; cursor:pointer; }
-    .dropzone:hover { background: rgba(255,255,255,0.04); }
-    .dropzone.dragover { border-color: var(--primary); background: rgba(255,255,255,0.06); }
-    .dropzone input{ display:none; }
-    .hint{ color: var(--muted); font-size:.92rem; margin-top:8px; }
+    .actions{display:flex;flex-wrap:wrap;gap:10px}
+    button{background:linear-gradient(180deg,var(--primary),var(--primary-2));color:#fff;border:none;padding:10px 14px;border-radius:12px;font-weight:600;letter-spacing:.2px;cursor:pointer;box-shadow:var(--shadow)}
+    button.ghost{background:transparent;border:1px solid var(--border)}
+    button.ok{background:linear-gradient(180deg,var(--ok),#15803d)}
 
-    .actions{ display:flex; flex-wrap: wrap; gap:10px; margin-top: 14px; }
-    button, .btn{ background: linear-gradient(180deg, var(--primary), var(--primary-2)); color: white; border: none; padding: 10px 14px; border-radius: 12px; font-weight:600; letter-spacing:.2px; cursor:pointer; box-shadow: var(--shadow); }
-    button.ghost{ background: transparent; border:1px solid var(--border); color: var(--text); }
-    button.warn{ background: linear-gradient(180deg, var(--warn), #d97706); color: #111827; }
-    button.danger{ background: linear-gradient(180deg, var(--danger), #ef4444); }
-    .mini{ font-size:.92rem; padding: 8px 10px; border-radius: 10px; }
+    .dropzone{display:block;width:100%;border:2px dashed var(--border);border-radius:var(--radius-xl);padding:32px;text-align:center;transition:.2s ease;cursor:pointer}
+    .dropzone:hover{background:rgba(255,255,255,.04)}
+    .dropzone.dragover{border-color:var(--primary);background:rgba(255,255,255,.06)}
+    .dropzone input{display:none}
 
-    table{ width:100%; border-collapse: collapse; }
-    th, td{ padding: 10px 8px; border-bottom: 1px solid var(--border); font-size:.95rem; }
-    th{ text-align:left; color: var(--muted); font-weight:600; }
-    tr.invalid{ background: rgba(255,107,107,0.08); }
-    tr.invalid td{ color: #ffd7d7; }
-    .badge{ padding: 4px 8px; border-radius: 999px; font-size:.8rem; border:1px solid var(--border); color: var(--muted); }
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px 8px;border-bottom:1px solid var(--border);font-size:.95rem}
+    th{text-align:left;color:var(--muted)}
+    td.right{text-align:right}
+    tr.invalid{background:rgba(255,107,107,.08)}
 
-    .stats{ display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
-    .stat{ background: #0c1320; border:1px solid var(--border); border-radius: 12px; padding: 12px; }
-    .stat .k{ font-size:1.2rem; font-weight:700; }
-    .stat .l{ color: var(--muted); font-size:.9rem; }
+    .stat{background:#0c1320;border:1px solid var(--border);border-radius:12px;padding:12px}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 
-    .log{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:.92rem; color: #d1e7ff; background:#0a1220; border-radius: 12px; border:1px solid var(--border); padding: 12px; max-height: 220px; overflow: auto; }
-    .muted{ color: var(--muted); }
-    .right{ text-align:right; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .log{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;font-size:.92rem;color:#d1e7ff;background:#0a1220;border-radius:12px;border:1px solid var(--border);padding:12px;max-height:240px;overflow:auto}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace}
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    select, input[type="number"]{background:#0c1320;color:var(--text);border:1px solid var(--border);border-radius:10px;padding:8px}
   </style>
-
-  <script src="https://unpkg.com/@mysten/wallet-standard@latest/dist/index.global.js"></script>
-
 </head>
 <body>
-  <header>
-    <div class="brand">
-      <div class="logo" aria-hidden="true"></div>
-      <div>
-        <div class="title">SUI Batch Distributor</div>
-        <div class="subtitle">Import a spreadsheet with <span class="mono">address, value</span> and generate the batch</div>
+<header>
+  <div class="brand">
+    <div class="logo"></div>
+    <div>
+      <div class="title">SUI Distributor</div>
+      <div class="subtitle">Batch via CSV (<span class="mono">address,value</span>)</div>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="connectWallet" class="ok">Connect Wallet</button>
+    <button id="runTests" class="ghost" title="Run automated browser tests">Run Tests</button>
+  </div>
+</header>
+
+<main class="container">
+  <section class="panel" aria-labelledby="upTitle">
+    <div class="head"><h2 id="upTitle">1) Load CSV</h2><span class="muted">UTF-8</span></div>
+    <div class="body">
+      <label class="dropzone" id="dropzone">
+        <input id="fileInput" type="file" accept=".csv,text/csv" />
+        <div><strong>Drop</strong> the CSV here or click</div>
+        <div class="muted">Header: <span class="mono">address,value</span></div>
+      </label>
+      <div class="actions" style="margin-top:10px">
+        <button id="parseBtn">Read File</button>
+        <button id="sampleBtn" class="ghost">Use Example</button>
       </div>
     </div>
-    <div class="actions">
-      <button id="connectWallet" class="mini" style="background:linear-gradient(180deg, var(--ok), #15803d);">Connect Wallet</button>
-      <button id="downloadTemplate" class="ghost mini">Download CSV Template</button>
-      <button id="clearAll" class="danger mini">Clear</button>
+  </section>
+
+  <section class="panel" aria-labelledby="sumTitle">
+    <div class="head"><h2 id="sumTitle">Summary</h2></div>
+    <div class="body">
+      <div class="grid3">
+        <div class="stat"><div id="statRows" style="font-weight:700;font-size:1.2rem">0</div><div class="muted">Rows</div></div>
+        <div class="stat"><div id="statValid" style="font-weight:700;font-size:1.2rem">0</div><div class="muted">Valid</div></div>
+        <div class="stat"><div id="statTotal" style="font-weight:700;font-size:1.2rem">0</div><div class="muted">Total (SUI)</div></div>
+      </div>
     </div>
-  </header>
+  </section>
 
-  <main class="container">
-
-    <section class="panel">
-      <div class="head">
-        <h2>1) Upload Spreadsheet</h2>
-        <span class="badge">Supported: CSV (UTF-8)</span>
+  <section class="panel" style="grid-column:1 / -1" aria-labelledby="prevTitle">
+    <div class="head">
+      <h2 id="prevTitle">2) Preview & Validation</h2>
+      <div class="actions">
+        <button id="copyJson" class="ghost">Copy JSON</button>
+        <button id="downloadJson">Download JSON</button>
       </div>
-      <div class="body">
-        <label class="dropzone" id="dropzone">
-          <input type="file" id="fileInput" accept=".csv,.CSV,text/csv,application/csv" />
-          <div style="font-size:1.05rem; font-weight:600;">Drop your file here or click to select</div>
-          <div class="hint">Required columns: <span class="mono">address</span> and <span class="mono">value</span>. <br/>Tip: Export as <strong>CSV</strong> from Excel/Google Sheets.</div>
-        </label>
-        <div class="actions">
-          <button id="parseBtn" class="mini">Read File</button>
-          <button id="sampleBtn" class="ghost mini">Use Example</button>
-        </div>
+    </div>
+    <div class="body">
+      <div style="overflow:auto;border:1px solid var(--border);border-radius:12px">
+        <table id="dataTable">
+          <thead><tr><th>#</th><th>Address</th><th class="right">Value</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
-    </section>
+      <p class="muted" style="margin:10px 4px 0">Edit the cells to correct. Invalid rows turn red.</p>
+    </div>
+  </section>
 
-    <section class="panel">
-      <div class="head"><h2>Summary</h2></div>
-      <div class="body">
-        <div class="stats">
-          <div class="stat"><div class="k" id="statRows">0</div><div class="l">Rows</div></div>
-          <div class="stat"><div class="k" id="statValid">0</div><div class="l">Valid</div></div>
-          <div class="stat"><div class="k" id="statTotal">0</div><div class="l">Total to Send</div></div>
-        </div>
+  <section class="panel" aria-labelledby="sendTitle">
+    <div class="head"><h2 id="sendTitle">3) On-chain Send</h2></div>
+    <div class="body" style="display:flex;flex-direction:column;gap:12px">
+      <div class="row">
+        <span class="muted">Wallet:</span>
+        <span id="walletAddress" class="mono">(disconnected)</span>
       </div>
-    </section>
-
-    <section class="panel" style="grid-column: 1 / -1;">
-      <div class="head">
-        <h2>2) Preview & Validation</h2>
-        <div class="actions">
-          <button id="copyJson" class="ghost mini">Copy JSON</button>
-          <button id="downloadJson" class="mini">Download JSON</button>
-        </div>
+      <div class="row">
+        <label class="muted">Network</label>
+        <select id="network">
+          <option value="devnet" selected>Devnet</option>
+          <option value="testnet">Testnet</option>
+          <option value="mainnet">Mainnet</option>
+        </select>
+        <label class="muted">Gas budget</label>
+        <input id="gasBudget" type="number" value="10000000" />
       </div>
-      <div class="body">
-        <div id="tableWrap" style="overflow:auto; border:1px solid var(--border); border-radius:12px;">
-          <table id="dataTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Address</th>
-                <th class="right">Value</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <p class="hint" style="margin:10px 4px 0;">Invalid rows are highlighted. You can edit directly in the table.</p>
+      <div class="row">
+        <label class="muted">Package ID</label>
+        <input id="packageId" class="mono" style="flex:1" value="0xffd6de2d90120298f76d5bf40c8844cd435b6da2609b01709e83cd8e8ddac347" />
       </div>
-    </section>
+      <button id="sendBatch">Send Batch</button>
+      <pre id="sendLog" class="log">Waiting...</pre>
+    </div>
+  </section>
+</main>
 
-    <section class="panel">
-      <div class="head"><h2>3) Send</h2></div>
-      <div class="body" style="display:flex; flex-direction:column; gap:16px;">
-        <div>
-          <div class="muted" style="margin-bottom:4px;">Connected Wallet:</div>
-          <div id="walletAddress" class="mono">(waiting connection)</div>
-          <div class="muted" style="margin-top:6px; font-size:.9rem;">Multi-wallet via Wallet Standard. Supports Suiet and Slush.</div>
-        </div>
-        <div>
-          <div class="muted" style="margin-bottom:4px;">Gas Budget</div>
-          <input id="gasBudget" type="number" value="10000000" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background:#0c1320; color:var(--text);"/>
-        </div>
-        <button id="sendBatch" class="mini" style="margin-top:8px;">Send Batch</button>
-        <pre class="log" id="sendLog">Waiting...</pre>
-      </div>
-    </section>
+<!-- JS permanece igual -->
+<script type="module">
+// ======== SDK imports via CDN (ESM) ========
+import { SuiClient, getFullnodeUrl } from 'https://esm.sh/@mysten/sui@1.42.0/client';
+import { Transaction } from 'https://esm.sh/@mysten/sui@1.42.0/transactions';
+import { getWallets } from 'https://esm.sh/@wallet-standard/app@1.0.0';
 
-    <section class="panel">
-      <div class="head"><h2>Notes</h2></div>
-      <div class="body">
-        <ul>
-          <li>Only CSV is supported directly in the browser. For .xlsx, export to CSV first.</li>
-          <li>Address validation: SUI hex format <span class="mono">0x...</span> (1–64 hex chars).</li>
-          <li>Values must be positive numbers. Decimals use dot <span class="mono">.</span> (e.g. <span class="mono">0.5</span>).</li>
-        </ul>
-      </div>
-    </section>
 
-  </main>
+// ======== Helpers DOM ========
+const $ = (s, r=document) => r.querySelector(s);
+const tbody = $('#dataTable tbody');
+const statRows = $('#statRows');
+const statValid = $('#statValid');
+const statTotal = $('#statTotal');
+const walletBtn = $('#connectWallet');
+const walletAddrEl = $('#walletAddress');
+const sendBtn = $('#sendBatch');
+const sendLog = $('#sendLog');
+const runTestsBtn = $('#runTests');
 
-  <!-- Nada abaixo mudou — lógica permanece 100% igual -->
-  <!-- TODO: (o JS continua igual, só removeu textos PT para alert etc) -->
+let rows = []; // {address, value, valid, error}
+let currentWallet = null;
+let currentAccount = null;
+
+function isSuiAddress(addr){ return /^0x[0-9a-f]{1,64}$/i.test(String(addr).trim()); }
+
+function parseCSV(text){
+  const lines = text.replace(/\r\n?|\n/g,'\n').split('\n').filter(l=>l.trim());
+  if(!lines.length) return [];
+  const sep = (lines[0].match(/;/g)||[]).length > (lines[0].match(/,/g)||[]).length ? ';' : ',';
+  const parseLine = (line)=>{
+    const out=[];let cur='';let q=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"'){ if(q && line[i+1]==='"'){cur+='"';i++;continue;} q=!q; continue; }
+      if(c===sep && !q){ out.push(cur); cur=''; continue; }
+      cur+=c;
+    }
+    out.push(cur);
+    return out.map(s=>s.trim());
+  };
+  const header = parseLine(lines[0]).map(h=>h.toLowerCase());
+  const ai = header.indexOf('address'); const vi = header.indexOf('value');
+  if(ai===-1||vi===-1) throw new Error('Cabeçalho inválido. Esperado address,value');
+  const data=[];
+  for(let i=1;i<lines.length;i++){
+    const cols=parseLine(lines[i]);
+    if(!cols.length) continue;
+    const a=cols[ai]||'';
+    const v=parseFloat(String(cols[vi]).replace(',','.'));
+    let valid=true,err='';
+    if(!isSuiAddress(a)){ valid=false; err='Address inválido'; }
+    if(!(Number.isFinite(v)&&v>0)){ valid=false; err=err?err+'; valor inválido':'Valor inválido'; }
+    data.push({address:a.trim(),value:v,valid,error:err});
+  }
+  return data;
+}
+
+function render(){
+  tbody.innerHTML='';
+  rows.forEach((r,i)=>{
+    const tr=document.createElement('tr'); tr.className=r.valid?'':'invalid';
+    tr.innerHTML=`<td>${i+1}</td>
+      <td contenteditable data-field="address" class="mono">${r.address}</td>
+      <td contenteditable data-field="value" class="right mono">${r.value||''}</td>
+      <td>${r.valid?'✔️ Válido':'⚠️ '+r.error}</td>
+      <td><button class="ghost" data-del="${i}">Remover</button></td>`;
+    tbody.appendChild(tr);
+  });
+  const total = rows.reduce((a,r)=>r.valid?a+Number(r.value):a,0);
+  statRows.textContent=rows.length; statValid.textContent=rows.filter(r=>r.valid).length; statTotal.textContent=String(total);
+}
+
+// ======== CSV UI ========
+$('#dropzone').addEventListener('click',()=>$('#fileInput').click());
+$('#dropzone').addEventListener('dragover',(e)=>{e.preventDefault();e.currentTarget.classList.add('dragover')});
+$('#dropzone').addEventListener('dragleave',(e)=>e.currentTarget.classList.remove('dragover'));
+$('#dropzone').addEventListener('drop',(e)=>{e.preventDefault();e.currentTarget.classList.remove('dragover');const f=e.dataTransfer.files?.[0];if(f) $('#fileInput').files=e.dataTransfer.files;});
+$('#parseBtn').addEventListener('click', async()=>{
+  const f=$('#fileInput').files?.[0]; if(!f){alert('Selecione um CSV.');return;}
+  const text=await f.text();
+  try{ rows=parseCSV(text); render(); }catch(err){ alert('Falha ao ler CSV: '+err.message) }
+});
+$('#sampleBtn').addEventListener('click',()=>{ const s=`address,value\n0x0000000000000000000000000000000000000001,1\n0x0000000000000000000000000000000000000002,0.5`; rows=parseCSV(s); render(); });
+
+tbody.addEventListener('input',(e)=>{
+  const cell=e.target.closest('[data-field]'); if(!cell) return;
+  const tr=cell.closest('tr'); const i=[...tbody.children].indexOf(tr);
+  const field=cell.getAttribute('data-field');
+  rows[i][field]=cell.textContent.trim();
+  // revalida
+  let valid=true,err=''; 
+  if(!isSuiAddress(rows[i].address)){valid=false;err='Address inválido'};
+  const v=parseFloat(String(rows[i].value).replace(',','.'));
+  if(!(Number.isFinite(v)&&v>0)){valid=false;err=err?err+'; valor inválido':'Valor inválido'}
+  rows[i].value=v; rows[i].valid=valid; rows[i].error=err;
+  render();
+});
+
+tbody.addEventListener('click',(e)=>{ const b=e.target.closest('button[data-del]'); if(!b) return; const i=Number(b.getAttribute('data-del')); rows.splice(i,1); render();});
+
+$('#copyJson').addEventListener('click', async()=>{ 
+  const data=JSON.stringify({network:$('#network').value,batch:rows.filter(r=>r.valid).map(r=>({address:r.address,value:r.value}))},null,2);
+  try{await navigator.clipboard.writeText(data); alert('JSON copiado!')}catch{alert('Copie manualmente baixando o arquivo.')}
+});
+$('#downloadJson').addEventListener('click',()=>{ 
+  const data=JSON.stringify({network:$('#network').value,batch:rows.filter(r=>r.valid).map(r=>({address:r.address,value:r.value}))},null,2);
+  const blob=new Blob([data],{type:'application/json'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='batch.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),3000);
+});
+
+// ======== Wallet discovery (Wallet Standard injetado) ========
+async function connectWallet() {
+  // Aguarda wallets injetarem (algumas demoram 50-150ms)
+  await new Promise(r => setTimeout(r, 200));
+
+  const walletsApi = getWallets();
+  const { wallets } = walletsApi.get() || {};
+
+  console.log("🔍 Carteiras detectadas:", wallets?.map(w => w.name));
+
+  if (!wallets || wallets.length === 0) {
+    alert("Nenhuma carteira encontrada.\n\nCertifique-se de que:\n- A extensão está instalada\n- Você abriu o site via http://localhost\n- A carteira está desbloqueada");
+    return;
+  }
+
+  const wallet = wallets.find(w =>
+    /suiet|sui wallet|surf|ethos/i.test(w.name)
+  ) || wallets[0];
+
+  const connect = wallet.features["standard:connect"];
+  if (!connect) return alert("Wallet não suporta standard:connect.");
+
+  try {
+    const { accounts } = await connect.connect();
+    currentWallet = wallet;
+    currentAccount = accounts[0];
+
+    walletAddrEl.textContent = currentAccount.address;
+    walletBtn.textContent = `✅ ${wallet.name}`;
+
+    console.log("✅ Conectado:", wallet.name, currentAccount.address);
+  } catch (err) {
+    alert("Erro ao conectar: " + err.message);
+  }
+}
+
+
+
+walletBtn.addEventListener("click", connectWallet);
+
+
+
+// ======== Envio: chama seu módulo Move publicado ========
+async function sendBatch(){
+  const valid = rows.filter(r=>r.valid);
+  if(!currentWallet || !currentAccount){ alert('Conecte a carteira.'); return; }
+  if(!valid.length){ alert('Nenhuma linha válida.'); return; }
+
+  const pkg = $('#packageId').value.trim();
+  const network = $('#network').value;
+  const gasBudget = Number($('#gasBudget').value || 0);
+
+  const client = new SuiClient({ url: getFullnodeUrl(network) });
+
+  // Monta vetores puros
+  const addresses = valid.map(r=>r.address);
+  const amounts = valid.map(r=> BigInt(Math.floor(Number(r.value) * 1_000_000_000)) ); // valores em MIST
+
+  const tx = new Transaction();
+  tx.setSender(currentAccount.address);
+  tx.moveCall({
+    target: `${pkg}::batch_distribute::distribute`,
+    arguments: [
+      tx.pure(addresses, 'vector<address>'),
+      tx.pure(amounts, 'vector<u64>')
+    ],
+  });
+  if(gasBudget>0) tx.setGasBudget(gasBudget);
+
+  sendLog.textContent = 'Assinando...';
+
+  // Carteiras podem expor um ou outro nome de feature:
+  const execFeature = currentWallet.features?.['sui:signAndExecuteTransactionBlock'] || currentWallet.features?.['sui:signAndExecuteTransaction'];
+
+  try{
+    if (execFeature){
+      const res = execFeature.signAndExecuteTransactionBlock
+        ? await execFeature.signAndExecuteTransactionBlock({ transaction: tx, options: { showEffects: true, showEvents: true, showObjectChanges: true, showBalanceChanges: true } })
+        : await execFeature.signAndExecuteTransaction({ transaction: tx, options: { showEffects: true, showEvents: true, showObjectChanges: true, showBalanceChanges: true } });
+      sendLog.textContent = '✅ Sucesso\n' + JSON.stringify(res, null, 2);
+    } else {
+      alert('A carteira não expõe métodos de assinatura compatíveis.');
+    }
+  }catch(err){
+    console.error(err);
+    sendLog.textContent = '❌ Erro: ' + (err?.message || String(err));
+  }
+}
+
+sendBtn.addEventListener('click', sendBatch);
+
+// ======== Testes automatizados no navegador ========
+function assertEqual(actual, expected, label){
+  const ok = (Number.isNaN(expected) && Number.isNaN(actual)) ? true : actual===expected;
+  console[ok? 'log':'error'](`${label}: ${ok?'OK':'FAIL'} — esperado=${expected} obtido=${actual}`);
+  return ok;
+}
+
+async function runTests(){
+  let passed = 0, total = 0;
+
+  console.group('TESTES: isSuiAddress');
+  const addrTests = [
+    {in:'0x1', ok:true}, {in:'0xABCDEF', ok:true}, {in:'0x', ok:false}, {in:'1x123', ok:false}, {in:'0xg123', ok:false},
+    {in:'0x0123456789abcdef', ok:true}, {in:'0Xabcdef', ok:true}, {in:'0x'.padEnd(70,'f'), ok:false}, {in:'  0xabc  ', ok:true}
+  ];
+  addrTests.forEach(t=>{ total++; if(assertEqual(isSuiAddress(t.in), t.ok, `isSuiAddress(${t.in})`)) passed++; });
+  console.groupEnd();
+
+  console.group('TESTES: parseCSV');
+  // válido
+  total++; try{ const r=parseCSV('address,value\n0x1,1'); assertEqual(r.length,1,'parse len ok'); passed++; }catch(e){ console.error('parseCSV válido falhou',e); }
+  // cabeçalho inválido
+  total++; try{ parseCSV('addr,val\n0x1,1'); console.error('parseCSV deveria falhar (header)'); }catch{ console.log('parseCSV header inválido OK'); passed++; }
+  // valor inválido
+  total++; try{ const r=parseCSV('address,value\n0x1,-2'); assertEqual(r[0].valid,false,'valor negativo inválido'); passed++; }catch(e){ console.error('parseCSV valor inválido falhou',e); }
+  console.groupEnd();
+
+  console.log(`TOTAL: ${passed}/${total} testes aprovados`);
+  alert(`Testes concluídos: ${passed}/${total} aprovados. Veja o console para detalhes.`);
+}
+
+runTestsBtn.addEventListener('click', runTests);
+
+// Smoke inicial
+console.log('App pronto.');
+</script>
 
 </body>
 </html>
