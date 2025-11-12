@@ -17,7 +17,7 @@ export default function App() {
     useSignAndExecuteTransactionBlock();
 
   const PACKAGE_ID =
-    "0xffd6de2d90120298f76d5bf40c8844cd435b6da2609b01709e83cd8e8ddac347";
+    "0xf261ea0440bf70d2acb6badeb21b76133c7543fa555e3783a6fe646cde2251b8";
 
   const handleFile = (e) => {
     const file = e.target.files[0];
